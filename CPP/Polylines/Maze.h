@@ -68,7 +68,10 @@ class Maze : public PolyLines {
         const Maze::Coord &cell,
         float scale,
         float *x, float *y);
-    void m_followWall(PolyLines *pl) const;
+    void m_followWall(
+        float scale,
+        bool followOuterWall,
+        PolyLines *pl) const;
 
     void m_printMaze(const Coord *marker = NULL, int direction = -1) const;
 
