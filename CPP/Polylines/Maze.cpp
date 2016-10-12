@@ -212,6 +212,16 @@ int &Maze::m_cellValue(const Coord &cell) const {
 }
 
 bool Maze::m_checkWall(const Coord &cell, int wall) const {
+  if (!m_isValidCell(cell)) {
+    /* We are checking from outside the maze, so we need to make a recursive
+     * call using the cell on the opposite side of the given wall */
+    Coord oppositeCell = cell + m_wallOffset(wall);
+    if (!m_isValidCell(oppositeCell)) {
+      /* There is no opposite cell, so there must be no wall */
+      return false;
+    }
+    return m_checkWall(oppositeCell, m_oppositeWall(wall));
+  }
   assert(m_isValidCell(cell));
   bool result = m_cellValue(cell) & wall;
 #ifndef NDEBUG
@@ -319,7 +329,7 @@ bool Maze::m_canWalk(
   return !m_checkWall(origin, wall);
 }
 
-#define SCALE 0.8f
+#define SCALE 0.2f
 #define HACK_SCALE 0.05f
 
 void Maze::m_scaleTowardsCellCenter(
@@ -349,9 +359,17 @@ void Maze::m_followWall(PolyLines *pl) const {
    *   - Loop Back if this is a path follower
    */
   Coord pos, corner;
-  int dir;
+  int dir, initialDir;
   float x, y;
+  bool firstPoint = true;
 #define WALL (m_cwWall(m_dirToWall(dir)))
+#define ADD_POINT(x, y) \
+  if (firstPoint) { \
+    pl->newLine({(x), (y)}); \
+    firstPoint = false; \
+  } else { \
+    pl->addPoint({(x), (y)}); \
+  }
   pos = m_initial;
   /* Determine the initial wall and orientation */
   for (dir = 0; dir < 4; ++dir) {
@@ -362,9 +380,8 @@ void Maze::m_followWall(PolyLines *pl) const {
     /* We couldn't seem to get anywhere from the initial cell */
     return;
   }
+  initialDir = dir;
   /* Start the maze line */
-  /* TODO: Determine the corner in which the maze follower starts */
-  pl->newLine({(float)pos.x * SCALE, (float)pos.y * SCALE});
   /* Iterate along the wall */
   /* FIXME: We need a better condition for this, as the maze can return to the
    * initial position more than once. */
@@ -387,7 +404,7 @@ void Maze::m_followWall(PolyLines *pl) const {
       /* Scale the corner towards the center of this cell */
       m_scaleTowardsCellCenter(
           corner, pos, SCALE, &x, &y);
-      pl->addPoint({x * HACK_SCALE, y * HACK_SCALE});
+      ADD_POINT(x * HACK_SCALE, y * HACK_SCALE)
       /* Make a right turn to follow a wall that has ended */
       dir = m_cwDir(dir);
       Coord next = pos + m_dirOffset(dir);
@@ -410,7 +427,7 @@ void Maze::m_followWall(PolyLines *pl) const {
       m_scaleTowardsCellCenter(
           corner, pos, SCALE, &x, &y);
       /* Generate a point in this corner of the cell */
-      pl->addPoint({x * HACK_SCALE, y * HACK_SCALE});
+      ADD_POINT(x * HACK_SCALE, y * HACK_SCALE)
       /* Turn left so that we can avoid the obstacle */
       dir = m_ccwDir(dir);
       continue;
@@ -418,7 +435,8 @@ void Maze::m_followWall(PolyLines *pl) const {
     /* Continue straight ahead */
     Coord next = pos + m_dirOffset(dir);
     pos = next;
-  } while (pos != m_initial);
+  } while ((pos != m_initial) || (dir != initialDir));
+  /* TODO: We need to make a line between the first and last point */
 }
 
 void Maze::m_printMaze(const Coord *marker, int direction) const {
