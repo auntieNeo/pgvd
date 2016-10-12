@@ -37,26 +37,17 @@ int main(int argc, char** argv) {
   InitializeGLFW();
   Shaders::create();
   Data::lines = new PolyLines();
-  if (argc <= 1) {
-    /*
-    Data::lines->newLine({ -.5,-.5 });
-    Data::lines->addPoint({ .5,.5 });
-    Data::lines->addPoint({ .0,.0 });
-    */
-    Maze maze(10, 10);
-    maze.drawLines(Data::lines);
-  } else {
-    for (size_t i = 1; i < argc; ++i) {
-      Data::lines->readFile(argv[i]);
-    }
-  }
 
+  /* Add a maze for testing purposes */
+  Maze maze(10, 10);
+  maze.drawLines(Data::lines);
 
   Options::showObjects = true;
   Options::showOctree = true;
   Options::max_level = 6;
 
   Data::octree = new Octree2();
+  Data::octree->build(Data::lines);
 
   /* Event loop */
   while (!glfwWindowShouldClose(GLUtilities::window)) {

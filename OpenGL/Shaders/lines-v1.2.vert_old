@@ -1,4 +1,4 @@
-attribute vec3 vPosition;
+attribute vec4 vPosition;
 
 uniform mat4 matrix;
 uniform vec3 color;
@@ -8,5 +8,5 @@ uniform float pointSize;
 
 void main() {
   gl_PointSize = pointSize;
-  gl_Position = matrix * vec4(vPosition, 1.0);
+  gl_Position = matrix * vec4(vPosition.x, vPosition.y, vPosition.z, 1.0);
 }
