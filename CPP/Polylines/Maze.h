@@ -15,6 +15,21 @@ class Maze : public PolyLines {
         return result;
       }
 
+      struct Coord operator-(const Coord &other) const {
+        Coord result;
+        result.x = this->x - other.x;
+        result.y = this->y - other.y;
+        return result;
+      }
+
+      void operator+=(const Coord &other) {
+        *this = *this + other;
+      }
+
+      void operator-=(const Coord &other) {
+        *this = *this - other;
+      }
+
       bool operator==(const Coord &other) const {
         return (this->x == other.x) && (this->y == other.y);
       }
@@ -47,6 +62,12 @@ class Maze : public PolyLines {
     void m_randomWalkMaze(const Coord &pos);
     bool m_canWalk(const Coord &origin, int direction) const;
 
+
+    static void m_scaleTowardsCellCenter(
+        const Maze::Coord &pos,
+        const Maze::Coord &cell,
+        float scale,
+        float *x, float *y);
     void m_followWall(PolyLines *pl) const;
 
     void m_printMaze(const Coord *marker = NULL, int direction = -1) const;

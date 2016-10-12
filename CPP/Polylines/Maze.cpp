@@ -319,7 +319,28 @@ bool Maze::m_canWalk(
   return !m_checkWall(origin, wall);
 }
 
-#define SCALE 0.1f
+#define SCALE 0.8f
+#define HACK_SCALE 0.05f
+
+void Maze::m_scaleTowardsCellCenter(
+    const Maze::Coord &pos,
+    const Maze::Coord &cell,
+    float scale,
+    float *x, float *y)
+{
+  /* Get coordinates as floating point numbers */
+  *x = (float)pos.x;
+  *y = (float)pos.y;
+  /* Translate the center of the cell to the origin */
+  *x -= (float)cell.x + 0.5f;
+  *y -= (float)cell.y + 0.5f;
+  /* Scale towards the origin */
+  *x *= scale;
+  *y *= scale;
+  /* Translate the origin back to the center of the cell */
+  *x += (float)cell.x + 0.5f;
+  *y += (float)cell.y + 0.5f;
+}
 
 void Maze::m_followWall(PolyLines *pl) const {
   /* I can pretty much start by following any wall. If I end up on the outside,
@@ -327,8 +348,9 @@ void Maze::m_followWall(PolyLines *pl) const {
    *   - Continue to follow the outer wall if this is a wall follower
    *   - Loop Back if this is a path follower
    */
-  Coord pos;
+  Coord pos, corner;
   int dir;
+  float x, y;
 #define WALL (m_cwWall(m_dirToWall(dir)))
   pos = m_initial;
   /* Determine the initial wall and orientation */
@@ -338,10 +360,10 @@ void Maze::m_followWall(PolyLines *pl) const {
   }
   if (dir >= 4) {
     /* We couldn't seem to get anywhere from the initial cell */
-    fprintf(stderr, "This is bad\n");
     return;
   }
   /* Start the maze line */
+  /* TODO: Determine the corner in which the maze follower starts */
   pl->newLine({(float)pos.x * SCALE, (float)pos.y * SCALE});
   /* Iterate along the wall */
   /* FIXME: We need a better condition for this, as the maze can return to the
@@ -353,8 +375,19 @@ void Maze::m_followWall(PolyLines *pl) const {
      * follow any walls that end abruptly */
     if (!(m_cellValue(pos) & WALL)) {
       fprintf(stderr, "We reached the end of this wall\n");
-      /* TODO: Make a point in our corner of the cell */
-      pl->addPoint({(float)pos.x * SCALE, (float)pos.y * SCALE});
+      /* Determine which corner of the cell this is */
+      /* The corner is opposite of dir and towards our wall */
+      corner = pos;
+      corner.x +=
+        (m_dirOffset(dir).x < 0) || (m_wallOffset(WALL).x > 0) ?
+        1 : 0;
+      corner.y +=
+        (m_dirOffset(dir).y < 0) || (m_wallOffset(WALL).y > 0) ?
+        1 : 0;
+      /* Scale the corner towards the center of this cell */
+      m_scaleTowardsCellCenter(
+          corner, pos, SCALE, &x, &y);
+      pl->addPoint({x * HACK_SCALE, y * HACK_SCALE});
       /* Make a right turn to follow a wall that has ended */
       dir = m_cwDir(dir);
       Coord next = pos + m_dirOffset(dir);
@@ -364,8 +397,20 @@ void Maze::m_followWall(PolyLines *pl) const {
       continue;
     }
     if (!m_canWalk(pos, dir)) {
-      /* TODO: Generate a point in this corner of the cell */
-      pl->addPoint({(float)pos.x * SCALE, (float)pos.y * SCALE});
+      /* Determine which corner of the cell this is */
+      /* The corner in the direction we are facing and towards the wall */
+      corner = pos;
+      corner.x +=
+        (m_dirOffset(dir).x > 0) || (m_wallOffset(WALL).x > 0) ?
+        1 : 0;
+      corner.y +=
+        (m_dirOffset(dir).y > 0) || (m_wallOffset(WALL).y > 0) ?
+        1 : 0;
+      /* Scale the corner towards the center of this cell */
+      m_scaleTowardsCellCenter(
+          corner, pos, SCALE, &x, &y);
+      /* Generate a point in this corner of the cell */
+      pl->addPoint({x * HACK_SCALE, y * HACK_SCALE});
       /* Turn left so that we can avoid the obstacle */
       dir = m_ccwDir(dir);
       continue;
