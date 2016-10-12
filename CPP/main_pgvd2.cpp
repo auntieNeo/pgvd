@@ -4,6 +4,7 @@
 #include "Events/events.h"
 #include "Shaders/Shaders.hpp"
 #include "Polylines/Polylines.h"
+#include "Polylines/Maze.h"
 #include "GlobalData/data.h"
 #include "Options/Options.h"
 
@@ -37,14 +38,19 @@ int main(int argc, char** argv) {
   Shaders::create();
   Data::lines = new PolyLines();
   if (argc <= 1) {
+    /*
     Data::lines->newLine({ -.5,-.5 });
     Data::lines->addPoint({ .5,.5 });
     Data::lines->addPoint({ .0,.0 });
+    */
+    Maze maze(10, 10);
+    maze.drawLines(Data::lines);
   } else {
     for (size_t i = 1; i < argc; ++i) {
       Data::lines->readFile(argv[i]);
     }
   }
+
 
   Options::showObjects = true;
   Options::showOctree = true;
