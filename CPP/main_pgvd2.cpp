@@ -1,4 +1,5 @@
 #include <iostream>
+#include <getopt.h>
 #include "clfw.hpp"
 #include "GLUtilities/gl_utils.h"
 #include "Events/events.h"
@@ -33,14 +34,48 @@ void InitializeGLFW(int width = 512, int height = 512) {
 
 int main(int argc, char** argv) {
   using namespace std;
+  bool batchMode = false;
+
+  /* Initialize */
   CLFW::Initialize(false, true, 2);
   InitializeGLFW();
   Shaders::create();
   Data::lines = new PolyLines();
 
-  /* Add a maze for testing purposes */
-  Maze maze(10, 10);
-  maze.drawLines(Data::lines);
+  /* Parse arguments */
+  struct option long_options[] = {
+    {"batch", no_argument, NULL, 'b'},
+    {"maze", required_argument, NULL, 'm'},
+    {NULL, 0, NULL, 0},
+  };
+  while (true) {
+    int option_index = 0;
+    int opt = getopt_long(
+        argc, argv,
+        "bm:",  /* optstring */
+        long_options,  /* longopts */
+        &option_index  /* longindex */
+        );
+    if (opt == -1) {
+      break;
+    }
+    switch (opt) {
+      case 'b':
+        /* Enable batch mode */
+        batchMode = true;
+        break;
+      case 'm':
+        {
+          int mazeWidth, mazeHeight;
+          /* Draw a maze with the given dimensions */
+          assert(optarg != NULL);
+          sscanf(optarg, "%dx%d", &mazeWidth, &mazeHeight);
+          Maze maze(mazeWidth, mazeHeight);
+          maze.drawLines(Data::lines);
+        }
+        break;
+    }
+  }
 
   Options::showObjects = true;
   Options::showOctree = true;
@@ -49,11 +84,15 @@ int main(int argc, char** argv) {
   Data::octree = new Octree2();
   Data::octree->build(Data::lines);
 
-  /* Event loop */
-  while (!glfwWindowShouldClose(GLUtilities::window)) {
-    glfwPollEvents();
-    refresh();
+  if (batchMode) {
+    /* TODO: Output batch mode performance statistics */
+  } else {
+    /* Event loop */
+    while (!glfwWindowShouldClose(GLUtilities::window)) {
+      glfwPollEvents();
+      refresh();
+    }
+    glfwTerminate();
   }
-  glfwTerminate();
   return 0;
 }
