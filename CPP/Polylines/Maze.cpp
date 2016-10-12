@@ -363,7 +363,7 @@ void Maze::m_followWall(
    *   - Continue to follow the outer wall if this is a wall follower
    *   - Loop Back if this is a path follower
    */
-  Coord pos, corner;
+  Coord pos, corner, initialPos;
   int dir, initialDir;
   float x, y;
   bool firstPoint = true;
@@ -375,21 +375,29 @@ void Maze::m_followWall(
   } else { \
     pl->addPoint({(x), (y)}); \
   }
-  pos = m_initial;
-  /* Determine the initial wall and orientation, such that we are always
-   * walking into the maze */
-  for (dir = 0; dir < 4; ++dir) {
-    /* FIXME: I think this has the potential to generate bad initial position
-     * and direction; it is vital that this position and direction is reached
-     * later to prevent an infinite loop. */
-    if (m_canWalk(pos, dir)
-        && m_isValidCell(pos + m_dirOffset(dir)))
-      break;
+  /* Determine the initial wall and orientation, such that we always start at a
+   * valid position along a wall. */
+  for (int y = 0; y < m_height; ++y) {
+    pos.y = y;
+    for (int x = 0; x < m_width; ++x) {
+      pos.x = x;
+      for (dir = 0; dir < 4; ++dir) {
+        /* Make sure we are walking into the maze, and that there is a wall to
+         * the right of us */
+        if (m_canWalk(pos, dir)
+            && m_isValidCell(pos + m_dirOffset(dir))
+            && (m_cellValue(pos) & WALL))
+        {
+          break;
+        }
+      }
+    }
   }
   if (dir >= 4) {
     /* We couldn't seem to get anywhere from the initial cell */
     return;
   }
+  initialPos = pos;
   initialDir = dir;
   /* Iterate along the wall */
   do {
@@ -448,7 +456,7 @@ void Maze::m_followWall(
     /* Continue straight ahead */
     Coord next = pos + m_dirOffset(dir);
     pos = next;
-  } while ((pos != m_initial) || (dir != initialDir));
+  } while ((pos != initialPos) || (dir != initialDir));
   /* TODO: We need to make a line between the first and last point */
 }
 
