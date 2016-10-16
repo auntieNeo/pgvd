@@ -37,7 +37,7 @@ Maze::Maze(int width, int height)
 
   m_generateMaze();
 
-  m_printMaze();
+//  m_printMaze();
 }
 
 Maze::~Maze() {
@@ -401,15 +401,13 @@ void Maze::m_followWall(
   initialDir = dir;
   /* Iterate along the wall */
   do {
-    m_printMaze(&pos, dir);
-    fprintf(stderr, "wall: %s\n", wallString(WALL));
+//    m_printMaze(&pos, dir);
     /* Check if we are still following a wall; this is so that we can
      * follow any walls that end abruptly */
     bool hasWall = m_checkWall(pos, WALL)
       || (followOuterWall ? false :
           !m_isValidCell(pos + m_wallOffset(WALL)));
     if (!hasWall) {
-      fprintf(stderr, "We reached the end of this wall\n");
       /* Determine which corner of the cell this is */
       /* The corner is opposite of dir and towards our wall */
       corner = pos;
