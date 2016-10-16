@@ -36,8 +36,6 @@ int main(int argc, char** argv) {
   using namespace std;
   bool batchMode = false;
 
-  /* Initialize */
-  CLFW::Initialize(false, true, 2);
   InitializeGLFW();
   Shaders::create();
   Data::lines = new PolyLines();
@@ -77,12 +75,19 @@ int main(int argc, char** argv) {
     }
   }
 
+  /* Initialize */
+  CLFW::Initialize(
+      false,  /* verbose */
+      !batchMode,  /* queryMode */
+      2  /* numQueues */
+      );
+
   Options::showObjects = true;
   Options::showOctree = true;
   Options::max_level = 6;
 
   Data::octree = new Octree2();
-  Data::octree->build(Data::lines);
+//  Data::octree->build(Data::lines);
 
   if (batchMode) {
     /* TODO: Output batch mode performance statistics */
