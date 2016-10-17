@@ -35,7 +35,9 @@ class Timer {
   }
 
   ~Timer() {
-    stop();
+    /* NOTE: Other files have been instantiating this timer without actually
+     * using it, causing a nuisance */
+//    stop();
   }
 
   void kill() {

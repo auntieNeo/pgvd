@@ -139,8 +139,8 @@ namespace GLUtilities {
     // get version info
     const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
     const GLubyte* version = glGetString(GL_VERSION); // version as a string
-    printf("Renderer: %s\n", renderer);
-    printf("OpenGL version supported %s\n", version);
+    fprintf(stderr, "Renderer: %s\n", renderer);
+    fprintf(stderr, "OpenGL version supported %s\n", version);
     gl_log("renderer: %s\nversion: %s\n", renderer, version);
 
     return true;

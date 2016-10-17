@@ -87,10 +87,12 @@ int main(int argc, char** argv) {
   Options::max_level = 6;
 
   Data::octree = new Octree2();
-//  Data::octree->build(Data::lines);
 
   if (batchMode) {
     /* TODO: Output batch mode performance statistics */
+    Timer t;
+    Data::octree->build(Data::lines);
+    t.stop();
   } else {
     /* Event loop */
     while (!glfwWindowShouldClose(GLUtilities::window)) {
