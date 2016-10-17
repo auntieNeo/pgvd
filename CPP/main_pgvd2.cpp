@@ -93,6 +93,8 @@ int main(int argc, char** argv) {
     Timer t;
     Data::octree->build(Data::lines);
     t.stop();
+    fprintf(stdout, "Number of lines: %d\n",
+        Data::lines->lineCount());
   } else {
     /* Event loop */
     while (!glfwWindowShouldClose(GLUtilities::window)) {

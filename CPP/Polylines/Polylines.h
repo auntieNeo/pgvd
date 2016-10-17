@@ -148,6 +148,16 @@ class PolyLines {
     return lines;
   }
 
+  int lineCount() const {
+    int prevLast = 0;
+    int numLines = 0;
+    for (int last : lasts) {
+      int numPoints = last - prevLast;
+      numLines += std::max(0, numPoints - 1);
+    }
+    return numLines;
+  }
+
   void render() {
     using namespace std;
     using namespace GLUtilities;
