@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <getopt.h>
 #include "clfw.hpp"
 #include "GLUtilities/gl_utils.h"
@@ -89,12 +90,14 @@ int main(int argc, char** argv) {
   Data::octree = new Octree2();
 
   if (batchMode) {
-    /* TODO: Output batch mode performance statistics */
-    Timer t;
+    /* Output batch mode performance statistics */
+    auto start = std::chrono::steady_clock::now();
     Data::octree->build(Data::lines);
-    t.stop();
-    fprintf(stdout, "Number of lines: %d\n",
-        Data::lines->lineCount());
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    fprintf(stdout, "%d\t%f\n",
+        Data::lines->lineCount(),
+        diff.count());
   } else {
     /* Event loop */
     while (!glfwWindowShouldClose(GLUtilities::window)) {
